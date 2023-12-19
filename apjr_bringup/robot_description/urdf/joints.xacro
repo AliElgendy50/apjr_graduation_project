@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="apjr">
+
+	<xacro:macro name="fixed_offset_joint" params="parent child offset">
+		<joint name="${parent}_to_${child}" type="fixed">
+			<parent link="${parent}"/>
+			<child link="${child}"/>
+			<origin xyz="${offset}" rpy="0 0 0" /> <!-- offset from parent to child, so with direction based in parent frame -->
+            <axis xyz="0 0 0"/>
+		</joint>
+	</xacro:macro>
+
+	<xacro:macro name="hinge_joint" params="parent child offset">
+		<joint name="${child}_joint" type="revolute"> <!-- revolute is a joint with a range limited motion around its' axis -->
+			<parent link="${parent}"/>
+			<child link="${child}"/>
+			<origin xyz="${offset}" rpy="0 0 0" /> <!-- offset from parent to child, so with direction based in parent frame -->
+			<axis xyz="0 0 1"/>
+            <limit lower="0" upper="0" effort="100000" velocity="1000.0"/> <!-- effeort is similar to torque/acceleration -->
+			<!-- friction - The physical static friction. For prismatic joints, the units are Newtons. For revolving joints, the units are Newton meters. -->
+			<!-- damping - The physical damping value. For prismatic joints, the units are Newton seconds per meter. For revolving joints, Newton meter secons per radian. -->
+			<!--<dynamics friction="0.0" damping="0.0"/>-->
+		</joint>
+	</xacro:macro>
+
+	<xacro:macro name="wheel_joint" params="parent child offset axis">
+		<joint name="${child}_joint" type="continuous"> <!-- continuous is a joint of continous motion around its' axis -->
+			<parent link="${parent}"/>
+			<child link="${child}"/>
+			<origin xyz="${offset}" rpy="0 0 0" /> <!-- offset from parent to child, so with direction based in parent frame -->
+			<axis xyz="${axis}"/>
+			<!-- friction - The physical static friction. For prismatic joints, the units are Newtons. For revolving joints, the units are Newton meters. -->
+			<!-- damping - The physical damping value. For prismatic joints, the units are Newton seconds per meter. For revolving joints, Newton meter secons per radian. -->
+			<!--<dynamics friction="0.0" damping="0.0"/>-->
+            <limit lower="0" upper="0" effort="100000" velocity="1000.0"/>
+		</joint>
+	</xacro:macro>
+
+</robot>

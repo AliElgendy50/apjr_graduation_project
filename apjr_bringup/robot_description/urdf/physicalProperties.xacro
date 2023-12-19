@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="apjr">
+
+    
+    <xacro:property name="chassisHeight" value="0.7"/>              
+    <xacro:property name="chassisLength" value="0.5"/>
+    <xacro:property name="chassisWidth" value="0.5"/>
+    <xacro:property name="chassisMass" value="40"/>
+
+    <xacro:property name="forkHeight" value="0.1"/>              
+    <xacro:property name="forkLength" value="0.8"/>
+    <xacro:property name="forkWidth" value="0.15"/>
+    <xacro:property name="forkMass" value="10"/>
+
+    <xacro:property name="casterRadius" value="0.05"/>
+    <xacro:property name="casterMass" value="3"/>
+
+    <xacro:property name="wheelWidth" value="0.05"/>
+    <xacro:property name="wheelRadius" value="0.08"/>
+    <xacro:property name="wheelPos" value="0.2"/>
+    <xacro:property name="wheelMass" value="10"/>
+
+    <!-- Chassis -->
+	<xacro:macro name="chassis_geometry">
+		<origin xyz="0 0 0" rpy="0 0 0" /> <!-- origin (0,0,0) is in the center of the box -->
+		<geometry>
+			<box size="${chassisLength} ${chassisWidth} ${chassisHeight}"/> <!-- 50x50x30 mm, Please confirm against 3D drawings -->
+		</geometry>
+	</xacro:macro>
+	<xacro:macro name="chassis_inertial">
+		<origin xyz="0 0 0" rpy="0 0 0" /> <!-- origin (0,0,0) is in the center of the box -->
+        <mass value="${chassisMass}"/>
+		<xacro:box_inertial mass="${chassisMass}" length="${chassisLength}" width="${chassisWidth}" height="${chassisHeight}" />
+	</xacro:macro>
+
+    <!-- Caster Wheel -->
+	<xacro:macro name="casterWheel_geometry">
+		 <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>       
+        <geometry>        
+            <sphere radius="${casterRadius}"/>      
+        </geometry>      
+	</xacro:macro>
+	<xacro:macro name="casterWheel_inertial">
+		<origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+        <mass value="${casterMass}"/>
+		<xacro:shpere_inertial mass="${casterMass}" radius="${casterRadius}" /> 
+	</xacro:macro>
+
+    <!-- Forks -->
+	<xacro:macro name="fork_geometry">
+		<origin xyz="0 0 0" rpy="0 0 0" /> <!-- origin (0,0,0) is in the center of the box -->
+		<geometry>
+			<box size="${forkLength} ${forkWidth} ${forkHeight}"/> <!-- 50x50x30 mm, Please confirm against 3D drawings -->
+		</geometry>
+	</xacro:macro>
+	<xacro:macro name="fork_inertial">
+		<origin xyz="0 0 0" rpy="0 0 0" /> <!-- origin (0,0,0) is in the center of the box -->
+        <mass value="${forkMass}"/>
+		<xacro:box_inertial mass="${forkMass}" length="${forkLength}" width="${forkWidth}" height="${forkHeight}" />
+	</xacro:macro>
+
+    <!-- Drive Wheel -->
+	<xacro:macro name="driveWheel_geometry">
+        <origin xyz="0.0 0.0 0.0" rpy="1.5707 0 0"/>
+        <geometry>
+            <cylinder radius="${wheelRadius}" length="${wheelWidth}"/>
+        </geometry>
+	</xacro:macro>
+	<xacro:macro name="driveWheel_inertial">
+        <origin xyz="0.0 0.0 0.0" rpy="1.5707 0 0"/>
+        <mass value="${wheelMass}"/>
+		<xacro:cylinder_inertial mass="${wheelMass}" radius="${wheelRadius}" length="${wheelWidth}" />
+	</xacro:macro>
+
+	<!-- Hinge -->
+	<xacro:macro name="hinge_geometry">
+		<origin xyz="0 0 0" rpy="0 0 0" />
+		<geometry>
+			<sphere radius="0.015"/>
+		</geometry>
+	</xacro:macro>
+	<xacro:macro name="hinge_inertial">
+		<origin xyz="0 0 0" rpy="0 0 0" />
+		<mass value="0.05" />
+		<!-- <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" /> small inertia -->
+		<xacro:shpere_inertial mass="0.05" radius="0.015" /> 
+
+	</xacro:macro>
+</robot>

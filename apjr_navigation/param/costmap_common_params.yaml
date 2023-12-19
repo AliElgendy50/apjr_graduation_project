@@ -1,0 +1,10 @@
+obstacle_range: 2.5
+raytrace_range: 3.0
+
+footprint: [[0.1,0.1], [0.1,-0.1],[-0.1,-0.1],[-0.1,0.1]]
+#robot_radius: ir_of_robot
+inflation_radius: 0.1
+
+observation_sources: scan #, point_cloud_sensor
+
+scan: {sensor_frame: base_scan, data_type: ray, topic: scan, marking: true, clearing: true}

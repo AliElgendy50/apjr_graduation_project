@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+    <param name="robot_description" command="$(find xacro)/xacro '$(find apjr_bringup)/robot_description/urdf/apjr.xacro'" />
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"  output="log" respawn="true" respawn_delay="0">
+        <param name="use_gui" value="false"/>
+    </node>
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"  output="log" respawn="true" respawn_delay="0">
+    </node>
+
+    <node name="rviz" pkg="rviz" type="rviz"  output="log" respawn="false" respawn_delay="0">
+    </node>
+
+</launch>

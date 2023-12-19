@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<robot>
+  <gazebo reference="base_footprint">
+      <turnGravityOff>false</turnGravityOff>
+  </gazebo>
+
+  <gazebo reference="chassis">
+      <canonical>false</canonical>
+  </gazebo>
+
+  <gazebo reference="drive_wheel">
+    <kp>1e15</kp> <!--contact stiffness-->
+    <kd>1e13</kd> <!--damping-->
+    <mu1>200</mu1>            
+    <mu2>200</mu2>            
+    <slip1>0</slip1>            
+    <slip2>0</slip2>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.1</maxVel>
+  </gazebo>
+
+  
+  <gazebo reference="right_fork_caster_wheel">
+    <kp>1000000.0</kp> <!--contact stiffness-->
+    <kd>100.0</kd> <!--damping-->
+    <mu1>0.1</mu1>            
+    <mu2>0.1</mu2>            
+    <slip1>0</slip1>            
+    <slip2>0</slip2>   
+    <maxVel>1</maxVel> 
+  </gazebo>
+
+  <gazebo reference="left_fork_caster_wheel">
+    <kp>1000000.0</kp> <!--contact stiffness-->
+    <kd>100.0</kd> <!--damping-->
+    <mu1>0.1</mu1>            
+    <mu2>0.1</mu2>            
+    <slip1>0</slip1>            
+    <slip2>0</slip2>   
+    <maxVel>1</maxVel> 
+  </gazebo>
+
+  <gazebo reference="left_chassis_caster_wheel">
+    <kp>1000000.0</kp> <!--contact stiffness-->
+    <kd>100.0</kd> <!--damping-->
+    <mu1>0.1</mu1>            
+    <mu2>0.1</mu2>            
+    <slip1>0</slip1>            
+    <slip2>0</slip2>   
+    <maxVel>1</maxVel> 
+  </gazebo>
+
+  <gazebo reference="right_chassis_caster_wheel">
+    <kp>1000000.0</kp> <!--contact stiffness-->
+    <kd>100.0</kd> <!--damping-->
+    <mu1>0.1</mu1>            
+    <mu2>0.1</mu2>            
+    <slip1>0</slip1>            
+    <slip2>0</slip2>   
+    <maxVel>1</maxVel> 
+  </gazebo>
+
+    <!-- <gazebo reference="imu_link">  -->
+  <!-- <gazebo>
+    <plugin name="imu_plugin" filename="libgazebo_ros_imu.so">
+      <alwaysOn>true</alwaysOn>
+      <bodyName>imu_link</bodyName>
+      <frameName>imu_link</frameName>
+      <topicName>imu</topicName>
+      <serviceName>imu_service</serviceName>
+      <gaussianNoise>0.0</gaussianNoise>
+      <updateRate>0</updateRate>
+      <imu>
+        <noise>
+          <type>gaussian</type>
+          <rate>
+            <mean>0.0</mean>
+            <stddev>2e-4</stddev>
+            <bias_mean>0.0000075</bias_mean>
+            <bias_stddev>0.0000008</bias_stddev>
+          </rate>
+          <accel>
+            <mean>0.0</mean>
+            <stddev>1.7e-2</stddev>
+            <bias_mean>0.1</bias_mean>
+            <bias_stddev>0.001</bias_stddev>
+          </accel>
+        </noise>
+      </imu>
+    </plugin>
+  </gazebo> -->
+
+  <gazebo>
+    <plugin name="imu_controller" filename="libhector_gazebo_ros_imu.so">
+      <!-- <robotNamespace>/</robotNamespace> -->
+      <updateRate>50.0</updateRate>
+      <bodyName>imu_link</bodyName>
+      <topicName>imu</topicName>
+      <!-- <accelDrift>0.005 0.005 0.005</accelDrift>
+      <accelGaussianNoise>0.005 0.005 0.005</accelGaussianNoise>
+      <rateDrift>0.005 0.005 0.005 </rateDrift>
+      <rateGaussianNoise>0.005 0.005 0.005 </rateGaussianNoise>
+      <headingDrift>0.005</headingDrift>
+      <headingGaussianNoise>0.005</headingGaussianNoise> -->
+      <accelDrift>0 0 0</accelDrift>
+      <accelGaussianNoise>0 0 0</accelGaussianNoise>
+      <rateDrift>0 0 0 </rateDrift>
+      <rateGaussianNoise>0 0 0</rateGaussianNoise>
+      <headingDrift>0</headingDrift>
+      <headingGaussianNoise>0</headingGaussianNoise>
+    </plugin>
+  </gazebo>
+
+  <gazebo>
+    <plugin name="tricycle_drive_controller" filename="libgazebo_ros_tricycle_drive.so">
+      <rosDebugLevel>na</rosDebugLevel>
+       <!-- <ros>
+        <robotNamespace>robot_name</robotNamespace>
+      </ros> -->
+      <alwaysOn>true</alwaysOn>
+      <publishWheelTF>true</publishWheelTF>
+      <publishWheelJointState>true</publishWheelJointState>
+      <steeringJoint>steering_joint</steeringJoint>
+      <actuatedWheelJoint>drive_wheel_joint</actuatedWheelJoint>
+      <encoderWheelLeftJoint>left_fork_caster_wheel_joint</encoderWheelLeftJoint>
+      <encoderWheelRightJoint>right_fork_caster_wheel_joint</encoderWheelRightJoint>
+      <actuatedWheelDiameter>0.16</actuatedWheelDiameter>
+      <encoderWheelDiameter>0.1</encoderWheelDiameter>
+      <encoderWheelSeparation>0.35</encoderWheelSeparation>
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
+      <odometrySource>world</odometrySource>
+      <robotBaseFrame>base_footprint</robotBaseFrame>
+      <updateRate>30.0</updateRate>
+      <wheelAcceleration>1</wheelAcceleration>
+      <!-- <wheelDeceleration>5.0</wheelDeceleration>
+      <wheelSpeedTolerance>0.001</wheelSpeedTolerance> -->
+      <wheelTorque>10</wheelTorque>
+      <!-- <steeringSpeed>0.03</steeringSpeed>
+      <steeringAngleTolerance>0.002</steeringAngleTolerance> -->
+    </plugin>
+  </gazebo>
+
+	<!-- Link Gazebo and ROS -->
+	<gazebo>
+		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+			<robotNamespace>apjr</robotNamespace>
+			<robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+		</plugin>
+	</gazebo>
+
+	<!-- Hokuyo -->
+
+  <gazebo reference="base_scan">
+    <sensor type="ray" name="head_hokuyo_sensor">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>false</visualize>
+      <update_rate>50</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1</resolution>
+            <min_angle>0</min_angle>
+            <max_angle>6.28319</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.10</min>
+          <max>12.0</max>
+          <resolution>0.015</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <!-- Noise parameters based on published spec for Hokuyo laser
+               achieving "+-30mm" accuracy at range < 10m.  A mean of 0.0m and
+               stddev of 0.01m will put 99.7% of samples within 0.03m of the true
+               reading. -->
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+      <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
+            <ros>
+                <argument>~/out:=scan</argument>
+            </ros>
+            <alwaysOn>true</alwaysOn>
+        <topicName>scan</topicName>
+        <frameName>base_scan</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+</robot>
