@@ -7,4 +7,4 @@ inflation_radius: 0.1
 
 observation_sources: scan #, point_cloud_sensor
 
-scan: {sensor_frame: base_scan, data_type: ray, topic: scan, marking: true, clearing: true}
+scan: {sensor_frame: base_scan, data_type: LaserScan, topic: scan, marking: true, clearing: true}

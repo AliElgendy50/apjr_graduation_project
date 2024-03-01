@@ -19,6 +19,16 @@
     <maxVel>0.1</maxVel>
   </gazebo>
 
+  <gazebo reference="drive_wheel_right">
+    <kp>1e15</kp> <!--contact stiffness-->
+    <kd>1e13</kd> <!--damping-->
+    <mu1>200</mu1>            
+    <mu2>200</mu2>            
+    <slip1>0</slip1>            
+    <slip2>0</slip2>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.1</maxVel>
+  </gazebo>
   
   <gazebo reference="right_fork_caster_wheel">
     <kp>1000000.0</kp> <!--contact stiffness-->
@@ -111,12 +121,9 @@
     </plugin>
   </gazebo>
 
-  <gazebo>
+  <!-- <gazebo>
     <plugin name="tricycle_drive_controller" filename="libgazebo_ros_tricycle_drive.so">
       <rosDebugLevel>na</rosDebugLevel>
-       <!-- <ros>
-        <robotNamespace>robot_name</robotNamespace>
-      </ros> -->
       <alwaysOn>true</alwaysOn>
       <publishWheelTF>true</publishWheelTF>
       <publishWheelJointState>true</publishWheelJointState>
@@ -134,14 +141,35 @@
       <robotBaseFrame>base_footprint</robotBaseFrame>
       <updateRate>30.0</updateRate>
       <wheelAcceleration>1</wheelAcceleration>
-      <!-- <wheelDeceleration>5.0</wheelDeceleration>
-      <wheelSpeedTolerance>0.001</wheelSpeedTolerance> -->
+      <wheelDeceleration>5.0</wheelDeceleration>
+      <wheelSpeedTolerance>0.001</wheelSpeedTolerance> 
       <wheelTorque>10</wheelTorque>
-      <!-- <steeringSpeed>0.03</steeringSpeed>
-      <steeringAngleTolerance>0.002</steeringAngleTolerance> -->
+      <steeringSpeed>0.03</steeringSpeed>
+      <steeringAngleTolerance>0.002</steeringAngleTolerance> 
+    </plugin>
+  </gazebo> -->
+    <gazebo>
+    <plugin name="apjr_controller" filename="libgazebo_ros_diff_drive.so">
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
+      <odometrySource>world</odometrySource>
+      <publishOdomTF>true</publishOdomTF>
+      <robotBaseFrame>base_footprint</robotBaseFrame>
+      <publishWheelTF>false</publishWheelTF>
+      <publishTf>true</publishTf>
+      <publishWheelJointState>true</publishWheelJointState>
+      <legacyMode>false</legacyMode>
+      <updateRate>30</updateRate>
+      <leftJoint>drive_wheel_joint</leftJoint>
+      <rightJoint>drive_wheel_right_joint</rightJoint>
+      <wheelSeparation>0.505</wheelSeparation>
+      <wheelDiameter>0.1</wheelDiameter>
+      <wheelAcceleration>1</wheelAcceleration>
+      <wheelTorque>10</wheelTorque>
+      <rosDebugLevel>na</rosDebugLevel>
     </plugin>
   </gazebo>
-
 	<!-- Link Gazebo and ROS -->
 	<gazebo>
 		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
@@ -152,8 +180,8 @@
 
 	<!-- Hokuyo -->
 
-  <gazebo reference="base_scan">
-    <sensor type="ray" name="head_hokuyo_sensor">
+  <!-- <gazebo reference="base_scan">
+    <sensor type="LaserScan" name="head_hokuyo_sensor">
       <pose>0 0 0 0 0 0</pose>
       <visualize>false</visualize>
       <update_rate>50</update_rate>
@@ -173,10 +201,6 @@
         </range>
         <noise>
           <type>gaussian</type>
-          <!-- Noise parameters based on published spec for Hokuyo laser
-               achieving "+-30mm" accuracy at range < 10m.  A mean of 0.0m and
-               stddev of 0.01m will put 99.7% of samples within 0.03m of the true
-               reading. -->
           <mean>0.0</mean>
           <stddev>0.01</stddev>
         </noise>
@@ -190,6 +214,38 @@
         <frameName>base_scan</frameName>
       </plugin>
     </sensor>
-  </gazebo>
+  </gazebo> -->
+
+<gazebo reference="base_scan">
+	<sensor type="gpu_ray" name="head_rplidar_sensor">
+		<pose>0 0 0 0 0 0</pose>
+		<visualize>true</visualize>
+		<update_rate>10</update_rate>
+		<ray>
+			<scan>
+				<horizontal>
+					<samples>400</samples>
+					<resolution>1</resolution>
+					<min_angle>-3.14159</min_angle>
+					<max_angle>3.14159</max_angle>
+				</horizontal>
+			</scan>
+			<range>
+				<min>0.15</min>
+				<max>6.0</max>
+				<resolution>0.01</resolution>
+			</range>
+			<noise>
+				<type>gaussian</type>
+				<mean>0.0</mean>
+				<stddev>0.01</stddev>
+			</noise>
+		</ray>
+		<plugin name="gazebo_ros_head_rplidar_controller" filename="libgazebo_ros_gpu_laser.so">
+        <topicName>scan</topicName>
+        <frameName>base_scan</frameName>
+		</plugin>
+	</sensor>
+</gazebo>
 
 </robot>

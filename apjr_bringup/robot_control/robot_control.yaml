@@ -6,9 +6,19 @@ robot:
     joint: drive_wheel_joint
     pid: {p: 200.0, i: 50.0, d: 0.01}
 
+  joint_drive_wheel_right_controller:
+    type: effort_controllers/JointVelocityController
+    joint: drive_wheel_right_joint
+    pid: {p: 200.0, i: 50.0, d: 0.01}
+
 
   # Position Controllers -----------------------------------------
-  joint_drive_disk_controller:
-    type: effort_controllers/JointPositionController
-    joint: steering_joint
-    pid: {p: 50.0, i: 10.0, d: 0.01}
+  # joint_drive_disk_controller:
+  #   type: effort_controllers/JointPositionController
+  #   joint: steering_joint
+  #   pid: {p: 50.0, i: 10.0, d: 0.01}
+
+  # joint_drive_disk_controller:
+  #   type: effort_controllers/JointPositionController
+  #   joint: steering_right_joint
+  #   pid: {p: 50.0, i: 10.0, d: 0.01}

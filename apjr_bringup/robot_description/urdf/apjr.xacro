@@ -43,7 +43,7 @@
 
      <!-- ################################### Right Fork Caster Wheel link #####################################-->
 
-    <link name="right_chassis_caster_wheel">
+    <!-- <link name="right_chassis_caster_wheel">
         <inertial>
             <xacro:casterWheel_inertial/>
         </inertial>
@@ -64,10 +64,42 @@
             </surface>   
         </collision>
     </link>
-    <xacro:wheel_joint parent="chassis" child="right_chassis_caster_wheel" offset="0.0 ${-chassisWidth/2 + forkWidth/2} ${-chassisHeight/2 + casterRadius -wheelRadius*2}" axis="0 1 0"/>
+    <xacro:wheel_joint parent="chassis" child="right_chassis_caster_wheel" offset="0.0 ${-chassisWidth/2 + forkWidth/2} ${-chassisHeight/2 + casterRadius -wheelRadius*2}" axis="0 1 0"/> -->
+    <link name="right_chassis_caster_wheel">
+        <inertial>
+            <xacro:driveWheel_inertial/>
+        </inertial>
+        <visual name="right_chassis_caster_wheel">
+            <xacro:driveWheel_geometry/>
+            <material name="">
+                <color rgba="0.3 1.0 0.0 1.0"/>
+                <texture filename=""/>
+            </material>
+        </visual>
+        <collision>
+            <xacro:driveWheel_geometry/>
+            <surface>        
+                <friction>          
+                    <ode>            
+                    <mu>0</mu>            
+                    <mu2>0</mu2>            
+                    <slip1>0.0</slip1>            
+                    <slip2>0.0</slip2>          
+                    </ode>        
+                </friction>   
+                <contact>
+                    <ode>
+                    <kp>1e15</kp>
+                    <kd>1e13</kd>
+                    </ode>
+                </contact>
+            </surface>   
+        </collision>
+    </link>
+    <xacro:wheel_joint parent="chassis" child="right_chassis_caster_wheel" offset="${-chassisLength/2 + 0.05} ${-chassisWidth/2 - wheelWidth/2}  ${-chassisHeight/2 - wheelRadius}" axis="0 1 0"/>
          <!-- ################################### Right Fork Caster Wheel link #####################################-->
 
-    <link name="left_chassis_caster_wheel">
+    <!-- <link name="left_chassis_caster_wheel">
         <inertial>
             <xacro:casterWheel_inertial/>
         </inertial>
@@ -88,7 +120,39 @@
             </surface>   
         </collision>
     </link>
-    <xacro:wheel_joint parent="chassis" child="left_chassis_caster_wheel" offset="0.0 ${chassisWidth/2 - forkWidth/2} ${-chassisHeight/2 + casterRadius -wheelRadius*2}" axis="0 1 0"/>
+    <xacro:wheel_joint parent="chassis" child="left_chassis_caster_wheel" offset="0.0 ${chassisWidth/2 - forkWidth/2} ${-chassisHeight/2 + casterRadius -wheelRadius*2}" axis="0 1 0"/> -->
+        <link name="left_chassis_caster_wheel">
+        <inertial>
+            <xacro:driveWheel_inertial/>
+        </inertial>
+        <visual name="left_chassis_caster_wheel">
+            <xacro:driveWheel_geometry/>
+            <material name="">
+                <color rgba="0.3 1.0 0.0 1.0"/>
+                <texture filename=""/>
+            </material>
+        </visual>
+        <collision>
+            <xacro:driveWheel_geometry/>
+            <surface>        
+                <friction>          
+                    <ode>            
+                    <mu>0</mu>            
+                    <mu2>0</mu2>            
+                    <slip1>0.0</slip1>            
+                    <slip2>0.0</slip2>          
+                    </ode>        
+                </friction>   
+                <contact>
+                    <ode>
+                    <kp>1e15</kp>
+                    <kd>1e13</kd>
+                    </ode>
+                </contact>
+            </surface>   
+        </collision>
+    </link>
+    <xacro:wheel_joint parent="chassis" child="left_chassis_caster_wheel" offset="${-chassisLength/2 + 0.05} ${chassisWidth/2 + wheelWidth/2}  ${-chassisHeight/2 - wheelRadius}" axis="0 1 0"/>
     <!-- ################################### Right Fork Link #####################################-->
 
     <link name="fork_right">
@@ -193,16 +257,16 @@
 	<!-- <xacro:fixed_offset_joint parent="chassis" child="drive_wheel_shaft" offset="0.0 0.0 ${-chassisHeight/2 - wheelRadius}"/> -->
 
     <!-- ################################### Hinge link #####################################-->    
-    <link name="drive_wheel_hinge">
+    <!-- <link name="drive_wheel_hinge">
 		<visual>
-			<!-- <material name="white"/> -->
+			 <material name="white"/> 
 			<xacro:hinge_geometry/>
 		</visual>
-		<!--<collision>
+		<<collision>
 			<xacro:hinge_geometry/>
-		</collision>-->
+		</collision>
 		<inertial>
-			<!-- <xacro:hinge_inertial/> -->
+			<xacro:hinge_inertial/> 
             <mass value="0.05" />
 		<inertia ixx="0"
 			 ixy="0"
@@ -213,8 +277,29 @@
 		/>
 		</inertial>
 	</link>
+    
+    <link name="drive_wheel_right_hinge">
+		<visual>
+			<xacro:hinge_geometry/>
+		</visual>
+		<collision>
+			<xacro:hinge_geometry/>
+		</collision>
+		<inertial>
+			<xacro:hinge_inertial/> 
+            <mass value="0.05" />
+		<inertia ixx="0"
+			 ixy="0"
+			 ixz="0"
+			 iyy="0"
+			 iyz="0"
+			 izz="${2/5*0.05*(0.015*0.015)}"
+		/>
+		</inertial>
+	</link>
+
     <joint name="steering_joint" type="revolute">
-        <origin xyz="0.0 0.0 ${-chassisHeight/2 - wheelRadius}" rpy="0 0 0"/>
+        <origin xyz="${chassisLength/2 - 0.05} ${chassisWidth/2 + wheelWidth/2}  ${-chassisHeight/2 - wheelRadius}" rpy="0 0 0"/>
         <parent link="chassis"/>
         <child link="drive_wheel_hinge"/>
         <axis xyz="0 0 1"/>
@@ -222,9 +307,19 @@
         <joint_properties damping="1.0" friction="1.0"/>
         <dynamics damping="1" friction="0"/> 
     </joint>
+    
+    <joint name="steering_right_joint" type="revolute">
+        <origin xyz="${chassisLength/2 - 0.05} ${-chassisWidth/2 - wheelWidth/2}  ${-chassisHeight/2 - wheelRadius}" rpy="0 0 0"/>
+        <parent link="chassis"/>
+        <child link="drive_wheel_right_hinge"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="-1.570796" upper="1.570796" effort="1000000" velocity="100"/>
+        <joint_properties damping="1.0" friction="1.0"/>
+        <dynamics damping="1" friction="0"/> 
+    </joint>
 
-	<!-- <xacro:hinge_joint parent="chassis" child="drive_wheel_hinge" offset="0.0 0.0 ${-chassisHeight/2 - wheelRadius}"/> -->
 	<xacro:hinge_transmission hinge="steering"/>
+    <xacro:hinge_transmission hinge="steering_right"/> -->
     
     <!-- ################################### Drive Wheel link #####################################-->
 
@@ -260,19 +355,62 @@
         </collision>
     </link>
 	<xacro:wheel_transmission wheel="drive_wheel"/>
+        <!-- ################################### Drive Wheel Right link #####################################-->
+
+    <link name="drive_wheel_right">
+        <inertial>
+            <xacro:driveWheel_inertial/>
+        </inertial>
+        <visual name="drive_wheel_right">
+            <xacro:driveWheel_geometry/>
+            <material name="">
+                <color rgba="0.3 1.0 0.0 1.0"/>
+                <texture filename=""/>
+            </material>
+        </visual>
+        <collision>
+            <xacro:driveWheel_geometry/>
+            <surface>        
+                <friction>          
+                    <ode>            
+                    <mu>0</mu>            
+                    <mu2>0</mu2>            
+                    <slip1>0.0</slip1>            
+                    <slip2>0.0</slip2>          
+                    </ode>        
+                </friction>   
+                <contact>
+                    <ode>
+                    <kp>1e15</kp>
+                    <kd>1e13</kd>
+                    </ode>
+                </contact>
+            </surface>   
+        </collision>
+    </link>
+	<xacro:wheel_transmission wheel="drive_wheel_right"/>
+    
     <!-- ################################### Joints #####################################-->
 
     <joint name="drive_wheel_joint" type="continuous">
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <!-- <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/> -->
+        <origin xyz="${chassisLength/2 - 0.05} ${chassisWidth/2 + wheelWidth/2}  ${-chassisHeight/2 - wheelRadius}" rpy="0 0 0"/>
         <!-- <origin xyz="0.0 0.0 ${-chassisHeight/2 - wheelRadius} " rpy="0.0 0.0 0.0"/> -->
-        <parent link="drive_wheel_hinge"/>
+        <!-- <parent link="drive_wheel_hinge"/> -->
+        <parent link="chassis"/>
         <child link="drive_wheel"/>
         <axis xyz="0.0 1.0 0.0"/>
-       <!-- <limit lower="0" upper="0.0" effort="1000000" velocity="1000.0"/>
-       <joint_properties damping="0.5" friction="1"/> -->
-        <!-- <limit lower="0" upper="0" effort="10" velocity="1000.0"/>
-       <joint_properties damping="1.0" friction="1.0"/>
-       <dynamics damping="1" friction="0"/> -->
+       
+    </joint>
+    
+    <joint name="drive_wheel_right_joint" type="continuous">
+        <!-- <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/> -->
+        <origin xyz="${chassisLength/2 - 0.05} ${-chassisWidth/2 - wheelWidth/2}  ${-chassisHeight/2 - wheelRadius}" rpy="0 0 0"/>
+        <!-- <origin xyz="0.0 0.0 ${-chassisHeight/2 - wheelRadius} " rpy="0.0 0.0 0.0"/> -->
+        <!-- <parent link="drive_wheel_right_hinge"/> -->
+        <parent link="chassis"/>
+        <child link="drive_wheel_right"/>
+        <axis xyz="0.0 1.0 0.0"/>
        
     </joint>
     <!-- ################################### base_scan Link #####################################-->
