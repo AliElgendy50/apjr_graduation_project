@@ -180,8 +180,8 @@
 
 	<!-- Hokuyo -->
 
-  <!-- <gazebo reference="base_scan">
-    <sensor type="LaserScan" name="head_hokuyo_sensor">
+  <gazebo reference="base_scan">
+    <sensor type="ray" name="head_hokuyo_sensor">
       <pose>0 0 0 0 0 0</pose>
       <visualize>false</visualize>
       <update_rate>50</update_rate>
@@ -214,10 +214,10 @@
         <frameName>base_scan</frameName>
       </plugin>
     </sensor>
-  </gazebo> -->
+  </gazebo>
 
-<gazebo reference="base_scan">
-	<sensor type="gpu_ray" name="head_rplidar_sensor">
+<!-- <gazebo reference="base_scan">
+	<sensor type="ray" name="head_rplidar_sensor">
 		<pose>0 0 0 0 0 0</pose>
 		<visualize>true</visualize>
 		<update_rate>10</update_rate>
@@ -246,7 +246,39 @@
         <frameName>base_scan</frameName>
 		</plugin>
 	</sensor>
-</gazebo>
+</gazebo> -->
+  <!-- <gazebo reference="base_scan">
+    <material>Gazebo/FlatBlack</material>
+    <sensor type="LaserScan" name="lds_lfcd_sensor">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>true</visualize>
+      <update_rate>5</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1</resolution>
+            <min_angle>0.0</min_angle>
+            <max_angle>6.28319</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.120</min>
+          <max>3.5</max>
+          <resolution>0.015</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+      <plugin name="gazebo_ros_lds_lfcd_controller" filename="libgazebo_ros_laser.so">
+        <topicName>scan</topicName>
+        <frameName>base_scan</frameName>
+      </plugin>
+    </sensor>
+  </gazebo> -->
 
 <!--            Camera         -->  
 
