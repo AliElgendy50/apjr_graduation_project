@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 import rospy
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Twist
 import math
- 
+
+##########################################################################################
+#                                 Euler From Quaternion                                  #
+##########################################################################################
+
 def euler_from_quaternion(x, y, z, w):
         """
         Convert a quaternion into euler angles (roll, pitch, yaw)
@@ -24,7 +29,11 @@ def euler_from_quaternion(x, y, z, w):
         yaw_z = math.atan2(t3, t4)
      
         return roll_x, pitch_y, yaw_z # in radians
-def callback(msg):
+
+##########################################################################################
+#                                 Odom Callback function                                 #
+##########################################################################################
+def odom_callback(msg):
     posX = msg.pose.pose.position.x
     posY = msg.pose.pose.position.y
     orinetationX = msg.pose.pose.orientation.x
@@ -33,11 +42,23 @@ def callback(msg):
     orinetationW = msg.pose.pose.orientation.w
 
     roll,pitch,yaw = euler_from_quaternion(orinetationX,orinetationY,orinetationZ,orinetationW)
-    print("roll = ",roll)
-    print("pitch = ",pitch)
-    print('yaw = ',yaw)
+    return roll,pitch,yaw
+##########################################################################################
+#                                 Cmd_Vel callback function                              #
+##########################################################################################
+def cmd_vel_callback(msg):
+     linearVx = msg.linear.x
+     linearVy = msg.linear.y
+     angularVz = msg.angular.z
 
+     return linearVx, linearVy, angularVz
+
+##########################################################################################
+#                                         Main                                           #
+##########################################################################################
+     
 if __name__=="__main__":
-    rospy.init_node('read_pose')
-    odom_sub = rospy.Subscriber('/odom',Odometry,callback)
+    rospy.init_node('wheels_control')
+    odom_sub = rospy.Subscriber('/odom',Odometry,odom_callback)
+    odom_sub = rospy.Subscriber('/cmd_vel',Twist,cmd_vel_callback)
     rospy.spin()
