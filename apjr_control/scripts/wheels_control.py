@@ -56,7 +56,6 @@ def cmd_vel_callback(msg):
 ##########################################################################################
 #                                         Main                                           #
 ##########################################################################################
-     
 if __name__=="__main__":
     rospy.init_node('wheels_control')
     odom_sub = rospy.Subscriber('/odom',Odometry,odom_callback)
