@@ -71,7 +71,7 @@
   </gazebo>
 
     <!-- <gazebo reference="imu_link">  -->
-  <!-- <gazebo>
+  <gazebo>
     <plugin name="imu_plugin" filename="libgazebo_ros_imu.so">
       <alwaysOn>true</alwaysOn>
       <bodyName>imu_link</bodyName>
@@ -98,20 +98,21 @@
         </noise>
       </imu>
     </plugin>
-  </gazebo> -->
+  </gazebo>
 
-  <gazebo>
+  <!-- <gazebo>
     <plugin name="imu_controller" filename="libhector_gazebo_ros_imu.so">
-      <!-- <robotNamespace>/</robotNamespace> -->
+      < <robotNamespace>/</robotNamespace> 
+      <alwaysOn>true</alwaysOn>
       <updateRate>50.0</updateRate>
       <bodyName>imu_link</bodyName>
       <topicName>imu</topicName>
-      <!-- <accelDrift>0.005 0.005 0.005</accelDrift>
+      <accelDrift>0.005 0.005 0.005</accelDrift>
       <accelGaussianNoise>0.005 0.005 0.005</accelGaussianNoise>
       <rateDrift>0.005 0.005 0.005 </rateDrift>
       <rateGaussianNoise>0.005 0.005 0.005 </rateGaussianNoise>
       <headingDrift>0.005</headingDrift>
-      <headingGaussianNoise>0.005</headingGaussianNoise> -->
+      <headingGaussianNoise>0.005</headingGaussianNoise>
       <accelDrift>0 0 0</accelDrift>
       <accelGaussianNoise>0 0 0</accelGaussianNoise>
       <rateDrift>0 0 0 </rateDrift>
@@ -119,7 +120,7 @@
       <headingDrift>0</headingDrift>
       <headingGaussianNoise>0</headingGaussianNoise>
     </plugin>
-  </gazebo>
+  </gazebo> -->
 
   <!-- <gazebo>
     <plugin name="tricycle_drive_controller" filename="libgazebo_ros_tricycle_drive.so">
@@ -167,6 +168,7 @@
       <wheelDiameter>0.1</wheelDiameter>
       <wheelAcceleration>1</wheelAcceleration>
       <wheelTorque>10</wheelTorque>
+      <!-- <max_linear_velocity>0.5</max_linear_velocity> -->
       <rosDebugLevel>na</rosDebugLevel>
     </plugin>
   </gazebo>

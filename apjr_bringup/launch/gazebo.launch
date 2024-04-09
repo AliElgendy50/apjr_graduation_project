@@ -30,5 +30,7 @@
     
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"  output="screen" respawn="false" respawn_delay="0">
     </node>
+    <!-- <include file="/home/abdelrhman/catkin_ws/src/apjr_robot/apjr_control/launch/rosserial.launch">
+    </include> -->
 
 </launch>

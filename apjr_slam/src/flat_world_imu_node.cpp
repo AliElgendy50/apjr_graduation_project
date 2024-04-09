@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <apjr_slam/include/apjr_slam/flat_world_imu_node.h>
+// #include <apjr_slam/include/apjr_slam/flat_world_imu_node.h>
 /*If it gives error try the line below instead*/
-/* #include <apjr_slam/flat_world_imu_node.h> */
+#include <apjr_slam/flat_world_imu_node.h> 
 
 FlatWorldImuNode::FlatWorldImuNode()
 {

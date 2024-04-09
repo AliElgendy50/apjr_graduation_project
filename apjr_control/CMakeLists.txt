@@ -51,6 +51,7 @@ find_package(catkin REQUIRED COMPONENTS std_msgs message_generation)
 add_message_files(
   FILES
   CustomMsg.msg 
+  VelocitiesMsg.msg
 )
 
 ## Generate services in the 'srv' folder

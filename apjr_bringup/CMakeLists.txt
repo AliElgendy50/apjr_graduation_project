@@ -21,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   xacro
   genmsg
-  gazebo
+  gazebo_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -171,7 +171,8 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 # catkin_install_python(PROGRAMS
-#   scripts/my_python_script
+#   # scripts/my_python_script
+#   imu_trial/scripts/tf_broadcaster_imu.py
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 

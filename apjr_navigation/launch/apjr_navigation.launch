@@ -2,6 +2,7 @@
   <!-- Arguments -->
   <!-- <arg name="model" default="apjr"/> -->
   <arg name="map_file" default="$(find apjr_navigation)/maps/map.yaml"/>
+  <!-- <arg name="map_file" default="$(find apjr_navigation)/maps/turtlebot3_world.yaml"/> -->
   <arg name="open_rviz" default="true"/>
   <arg name="move_forward_only" default="false"/>
 
@@ -17,6 +18,13 @@
     <arg name="move_forward_only" value="$(arg move_forward_only)"/>
   </include>
 
+  <node name="imu_filter" pkg="imu_complementary_filter" type="complementary_filter_node"/>
+  <node name="ekf_se" pkg="robot_localization" type="ekf_localization_node" clear_params = "true">
+    <rosparam command="load" file="$(find apjr_navigation)/config/ekf.yaml"/>
+    <remap from="odometry/filtered" to="odom/"/>
+
+  </node>
+  
   <!-- rviz -->
   <group if="$(arg open_rviz)"> 
     <node pkg="rviz" type="rviz" name="rviz" required="true"

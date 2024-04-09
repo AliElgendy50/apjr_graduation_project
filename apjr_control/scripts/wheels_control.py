@@ -3,25 +3,20 @@ import rospy
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist, Pose,PoseWithCovarianceStamped
 from tf.transformations import euler_from_quaternion
-from apjr_control.msg import CustomMsg
+from apjr_control.msg import CustomMsg, VelocitiesMsg
 import math
 import time
 
-##########################################################################################
-#                                 Euler From Quaternion                                  #
-##########################################################################################
-
-# def euler_from_quaternion(x, y, z, w):
-#     orientation = quaternion.quaternion(w, x, y, z)
-#     roll_x = math.degrees(euler[0])
-#     pitch_y = math.degrees(euler[1])
-#     yaw_z = math.degrees(euler[2])
-#     return roll_x, pitch_y, yaw_z # in radians
 
 ##########################################################################################
-#                                 Odom Callback function                                 #
+#                                 Global Variables                                       #
 ##########################################################################################
-def odom_callback(msg):
+EulerOrientation = CustomMsg()
+VelocitiesData = VelocitiesMsg()
+##########################################################################################
+#                                 Amcl Callback function                                 #
+##########################################################################################
+def amcl_callback(msg):
     posX = msg.pose.pose.position.x
     posY = msg.pose.pose.position.y
     orinetationX = msg.pose.pose.orientation.x
@@ -31,18 +26,24 @@ def odom_callback(msg):
 
     orientation_list = [orinetationX,orinetationY,orinetationZ,orinetationW]
     EulerOrientation.roll,EulerOrientation.pitch,EulerOrientation.yaw = euler_from_quaternion(orientation_list)
-    EulerOrientation = CustomMsg()
-    
-    pub.publish(EulerOrientation)
+    pub_euler.publish(EulerOrientation)
 
     
 ##########################################################################################
 #                                 Cmd_Vel callback function                              #
 ##########################################################################################
 def cmd_vel_callback(msg):
-     linearVx = msg.linear.x
-     linearVy = msg.linear.y
-     angularVz = msg.angular.z
+    linearVx = msg.linear.x
+    linearVy = msg.linear.y
+    angularVz = msg.angular.z
+
+    VelocitiesData.linearVx = linearVx
+    VelocitiesData.linearVy = linearVy
+    VelocitiesData.angularVz = angularVz
+
+    pub_vel.publish(VelocitiesData)
+    
+     
 
 
 ##########################################################################################
@@ -50,9 +51,9 @@ def cmd_vel_callback(msg):
 ##########################################################################################
 if __name__=="__main__":
     rospy.init_node('wheels_control')
-    rospy.Subscriber('/amcl_pose',PoseWithCovarianceStamped,odom_callback)
+    rospy.Subscriber('/amcl_pose',PoseWithCovarianceStamped,amcl_callback)
     rospy.Subscriber('/cmd_vel',Twist,cmd_vel_callback)
 
-    pub = rospy.Publisher('desired_velocities',CustomMsg,queue_size=10)
-    
+    pub_euler = rospy.Publisher('euler_orientation',CustomMsg,queue_size=10)
+    pub_vel = rospy.Publisher('desired_velocities',VelocitiesMsg,queue_size=10)
     rospy.spin()

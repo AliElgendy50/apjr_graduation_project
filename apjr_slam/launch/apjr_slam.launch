@@ -23,9 +23,13 @@
     <arg name="configuration_basename" value="$(arg configuration_basename)"/>
   </include>
 
+  <!-- <include file="/home/abdelrhman/catkin_ws/src/apjr_robot/apjr_control/launch/rosserial.launch">
+  </include> -->
+
   <!-- rviz -->
   <group if="$(arg open_rviz)"> 
     <node pkg="rviz" type="rviz" name="rviz" required="true"
           args="-d $(find apjr_slam)/rviz/apjr_$(arg slam_methods).rviz"/>
   </group>
+
 </launch>
