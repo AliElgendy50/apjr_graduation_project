@@ -39,7 +39,7 @@ void setup()
     new DCMotor(IN1, IN2,ENA),
     new DCMotor(IN3, IN4,ENB));
 
-  my_robot->updateParameters(0.2, 1.0);
+  my_robot->updateParameters(1.0, 1.0);
 
   nh.initNode();
   nh.subscribe(sub);

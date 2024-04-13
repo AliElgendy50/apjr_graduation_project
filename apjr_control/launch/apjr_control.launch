@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
 
   <!--
@@ -21,10 +22,10 @@
         type="spawner" 
         respawn="false"
         output="screen"
-        ns="/apjr" 
+        ns="/robot" 
         args="joint_state_controller rightWheel_effort_controller leftWheel_effort_controller"
   />
-
+  
 
   <!-- convert joint states to TF transforms for rviz, etc -->
   <!--
@@ -41,7 +42,7 @@
 	-->
   <param name="robot_description" 
          command="$(find xacro)/xacro$(arg model)" />
-        <!-- <remap from="/joint_states" to="/my_robot/joint_states" /> -->
+        <remap from="/joint_states" to="/apjr/joint_states" />
   </node>
 
 </launch>

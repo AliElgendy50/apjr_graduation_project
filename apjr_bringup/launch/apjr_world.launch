@@ -56,7 +56,7 @@
 		  type="spawn_model" 
 		  respawn="false"
 		  output="screen"
- 		  args="-urdf -model my_robot -param robot_description" />
+ 		  args="-urdf -model apjr -param robot_description" />
           
 
  	<!-- 
