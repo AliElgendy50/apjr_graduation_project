@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+import rospy
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+from visualization_msgs.msg import Marker
+from roboflow import Roboflow
+import supervision as sv
+import cv2
+
+# Initialize ROS node
+rospy.init_node('roboflow_node')
+
+# Initialize CvBridge
+bridge = CvBridge()
+
+# Initialize Roboflow
+rf = Roboflow(api_key="LlIKXYgtTmJZ2CUwv4Hl")
+project = rf.workspace().project("pallet-5esjz")
+model = project.version(1).model
+
+# Publisher for markers
+marker_pub = rospy.Publisher('/roboflow_markers', Marker, queue_size=10)
+
+# Publisher for processed image
+processed_image_pub = rospy.Publisher('/processed_image', Image, queue_size=10)
+
+# Function to process the image
+def process_image(frame):
+    # Predict on the frame
+    result = model.predict(frame, confidence=40, overlap=30).json()
+    detections = sv.Detections.from_inference(result)
+    
+    # Process the detections and publish markers
+    for idx, detection in enumerate(result["predictions"]):
+        marker = Marker()
+        marker.header.frame_id = "/odom"
+        marker.header.stamp = rospy.Time.now()
+        marker.ns = "roboflow_markers"
+        marker.id = idx  # Each detection should have a unique id
+        marker.type = Marker.CUBE
+        marker.action = Marker.ADD
+        marker.pose.position.x = detection["x"]
+        marker.pose.position.y = detection["y"]
+        marker.pose.position.z = detection.get("z", 0.0)  # Check if "z" key exists
+        marker.pose.orientation.x = 0.0
+        marker.pose.orientation.y = 0.0
+        marker.pose.orientation.z = 0.0
+        marker.pose.orientation.w = 1.0
+        marker.scale.x = detection["width"]
+        marker.scale.y = detection["height"]
+        marker.scale.z = 0.1  # Set the thickness of the marker
+        marker.color.a = 1.0
+        marker.color.r = 1.0  # Set color as red
+        marker.color.g = 0.0
+        marker.color.b = 0.0
+        marker_pub.publish(marker)
+    
+    # Publish the processed image
+    processed_image_msg = bridge.cv2_to_imgmsg(frame, encoding="bgr8")
+    processed_image_pub.publish(processed_image_msg)
+
+# Callback function for image subscriber
+def image_callback(msg):
+    # Convert ROS Image message to OpenCV image
+    frame = bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+
+    # Process the image
+    process_image(frame)
+
+# Subscribe to the camera topic
+rospy.Subscriber("/camera/image", Image, image_callback)
+
+# Spin ROS
+rospy.spin()
