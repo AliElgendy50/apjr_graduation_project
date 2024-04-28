@@ -5,6 +5,7 @@ from cv_bridge import CvBridge
 from roboflow import Roboflow
 import supervision as sv
 import cv2
+import numpy as np
 
 def main():
     rospy.init_node('pallet_detection_publisher')
@@ -19,6 +20,9 @@ def main():
     rf = Roboflow(api_key="LlIKXYgtTmJZ2CUwv4Hl")
     project = rf.workspace().project("pallet-5esjz")
     model = project.version(1).model
+
+    # create instance of BoxAnnotator
+    box_annotator = sv.BoxAnnotator(thickness=4, text_thickness=4, text_scale=2)
 
     # Open a video file or stream
     video_capture = cv2.VideoCapture("/home/ali/Pallets_Grad_Data/pallets3.mp4")  # Corrected file path
@@ -38,21 +42,56 @@ def main():
             break
 
         # Predict on the frame
-        result = model.predict(frame, confidence=40, overlap=30).json()
-        detections = sv.Detections.from_inference(result)
-        labels = [item["class"] for item in result["predictions"]]
+        results = model.predict(frame).json()
+        detections = sv.Detections.from_roboflow(results)
 
-        # Annotate the frame
-        label_annotator = sv.LabelAnnotator()
-        bounding_box_annotator = sv.BoundingBoxAnnotator()
-        annotated_frame = bounding_box_annotator.annotate(scene=frame, detections=detections)
-        annotated_frame = label_annotator.annotate(scene=annotated_frame, detections=detections, labels=labels)
+        # Find indices of "front" and "pallet" classes
+        front_indices = np.where(detections.data['class_name'] == 'front')[0]
+        pallet_indices = np.where(detections.data['class_name'] == 'pallet')[0]
 
-        # Convert the annotated frame from BGR to RGB format
-        annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+        # Find the index with the highest confidence for each class
+        highest_front_index = np.argmax(detections.confidence[front_indices])
+        highest_pallet_index = np.argmax(detections.confidence[pallet_indices])
 
-        # Convert the annotated frame to ROS Image message
-        image_msg = bridge.cv2_to_imgmsg(annotated_frame_rgb, encoding="rgb8")
+        # Get the detection data for the highest confidence detections
+        if front_indices.size > 0:
+            front_confidence = detections.confidence[front_indices[highest_front_index]]
+            front_bbox = detections.xyxy[front_indices[highest_front_index]]
+            front_label = "front"
+        else:
+            front_confidence = 0
+            front_bbox = None
+            front_label = None
+
+        if pallet_indices.size > 0:
+            pallet_confidence = detections.confidence[pallet_indices[highest_pallet_index]]
+            pallet_bbox = detections.xyxy[pallet_indices[highest_pallet_index]]
+            pallet_label = "pallet"
+        else:
+            pallet_confidence = 0
+            pallet_bbox = None
+            pallet_label = None
+
+        # Print data for the highest confidence detections
+        print("Front Detection:")
+        print(f"  Confidence: {front_confidence}")
+        print(f"  Bounding Box: {front_bbox}")
+        print("Pallet Detection:")
+        print(f"  Confidence: {pallet_confidence}")
+        print(f"  Bounding Box: {pallet_bbox}")
+
+        # Draw bounding boxes on the frame for the highest confidence detections
+        if front_bbox is not None:
+            cv2.rectangle(frame, (int(front_bbox[0]), int(front_bbox[1])), (int(front_bbox[2]), int(front_bbox[3])), (0, 255, 0), 2)
+            cv2.putText(frame, f'{front_label} {front_confidence:.2f}', (int(front_bbox[0]), int(front_bbox[1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+        if pallet_bbox is not None:
+            cv2.rectangle(frame, (int(pallet_bbox[0]), int(pallet_bbox[1])), (int(pallet_bbox[2]), int(pallet_bbox[3])), (0, 0, 255), 2)
+            cv2.putText(frame, f'{pallet_label} {pallet_confidence:.2f}', (int(pallet_bbox[0]), int(pallet_bbox[1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+        # Convert the frame to ROS Image message
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        image_msg = bridge.cv2_to_imgmsg(frame_rgb, encoding="rgb8")
 
         # Publish the annotated frame
         image_pub.publish(image_msg)
