@@ -6,6 +6,7 @@ from roboflow import Roboflow
 import supervision as sv
 import cv2
 import numpy as np
+from std_msgs.msg import String
 
 def main():
     rospy.init_node('pallet_detection_publisher')
@@ -15,6 +16,12 @@ def main():
 
     # Publisher for annotated image
     image_pub = rospy.Publisher('/pallet_detection/image', Image, queue_size=10)
+
+    # Publisher for decision
+    decision_pub = rospy.Publisher('/decision', String, queue_size=10)  # Adjust topic and message type as needed
+
+    # Initialize the decision message
+    decision_msg = String()
 
     # Initialize Roboflow
     rf = Roboflow(api_key="LlIKXYgtTmJZ2CUwv4Hl")
@@ -133,6 +140,27 @@ def main():
         print("Left Width:", left_width)
         print("Right Width:", right_width)
 
+        # Calculate the difference between left and right widths
+        width_difference = abs(left_width - right_width)
+
+        # Define a threshold for considering the pallet centered
+        threshold = 10  # Adjust as needed
+
+        # Determine if the pallet is centered
+        if width_difference <= threshold:
+            decision = "Centered"
+        elif left_width < right_width:
+            decision = "Go Left"
+        else:
+            decision = "Go Right"
+
+        # Publish the decision on the "decision" topic
+        decision_pub.publish(decision)
+
+        # Print left and right widths and decision
+        print("Left Width:", left_width)
+        print("Right Width:", right_width)
+        print("Decision:", decision)
         
 
         rate.sleep()
