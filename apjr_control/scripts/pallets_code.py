@@ -21,7 +21,7 @@ def main():
     model = project.version(1).model
 
     # Open a video file or stream
-    video_capture = cv2.VideoCapture("/home/ali/Pallets_Grad_Data/pallets4.mp4")  # Corrected file path
+    video_capture = cv2.VideoCapture("/home/ali/Pallets_Grad_Data/pallets3.mp4")  # Corrected file path
 
     # Check if the video capture is open
     if not video_capture.isOpened():
