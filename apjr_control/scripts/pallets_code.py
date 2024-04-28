@@ -58,27 +58,51 @@ def main():
             front_confidence = detections.confidence[front_indices[highest_front_index]]
             front_bbox = detections.xyxy[front_indices[highest_front_index]]
             front_label = "front"
+            front_width = front_bbox[2] - front_bbox[0]
+            front_height = front_bbox[3] - front_bbox[1]
         else:
             front_confidence = 0
             front_bbox = None
             front_label = None
+            front_width = 0
+            front_height = 0
 
         if pallet_indices.size > 0:
             pallet_confidence = detections.confidence[pallet_indices[highest_pallet_index]]
             pallet_bbox = detections.xyxy[pallet_indices[highest_pallet_index]]
             pallet_label = "pallet"
+            pallet_width = pallet_bbox[2] - pallet_bbox[0]
+            pallet_height = pallet_bbox[3] - pallet_bbox[1]
         else:
             pallet_confidence = 0
             pallet_bbox = None
             pallet_label = None
+            pallet_width = 0
+            pallet_height = 0
+
 
         # Print data for the highest confidence detections
         print("Front Detection:")
-        print(f"  Confidence: {front_confidence}")
-        print(f"  Bounding Box: {front_bbox}")
+        if front_bbox is not None:
+            print(f"  Confidence: {front_confidence:.2f}")
+            print(f"  Bounding Box:")
+            print(f"    - Top-Left:     ({front_bbox[0]:.2f}, {front_bbox[1]:.2f})")
+            print(f"    - Bottom-Right: ({front_bbox[2]:.2f}, {front_bbox[3]:.2f})")
+            print(f"  Width:  {front_width:.2f}")
+            print(f"  Height: {front_height:.2f}")
+        else:
+            print("  No front detection")
+
         print("Pallet Detection:")
-        print(f"  Confidence: {pallet_confidence}")
-        print(f"  Bounding Box: {pallet_bbox}")
+        if pallet_bbox is not None:
+            print(f"  Confidence: {pallet_confidence:.2f}")
+            print(f"  Bounding Box:")
+            print(f"    - Top-Left:     ({pallet_bbox[0]:.2f}, {pallet_bbox[1]:.2f})")
+            print(f"    - Bottom-Right: ({pallet_bbox[2]:.2f}, {pallet_bbox[3]:.2f})")
+            print(f"  Width:  {pallet_width:.2f}")
+            print(f"  Height: {pallet_height:.2f}")
+        else:
+            print("  No pallet detection")
 
         # Draw bounding boxes on the frame for the highest confidence detections
         if front_bbox is not None:
@@ -95,6 +119,21 @@ def main():
 
         # Publish the annotated frame
         image_pub.publish(image_msg)
+
+        frame_height, frame_width, _ = frame.shape
+        total_frame_width_height = (frame_width, frame_height)
+        print("Total Frame Width and Height:", total_frame_width_height)
+
+
+        # Calculate left and right widths for centering bounding box
+        left_width = front_bbox[0]
+        right_width = frame_width - front_bbox[2]
+
+        # Print left and right widths
+        print("Left Width:", left_width)
+        print("Right Width:", right_width)
+
+        
 
         rate.sleep()
 
