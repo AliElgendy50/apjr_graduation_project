@@ -18,7 +18,7 @@ def main():
     image_pub = rospy.Publisher('/pallet_detection/image', Image, queue_size=10)
 
     # Publisher for decision
-    decision_pub = rospy.Publisher('/decision', String, queue_size=10)  # Adjust topic and message type as needed
+    decision_pub = rospy.Publisher('/final_decision', String, queue_size=10)  # Adjust topic and message type as needed
 
     # Initialize the decision message
     decision_msg = String()
@@ -136,9 +136,20 @@ def main():
         left_width = front_bbox[0]
         right_width = frame_width - front_bbox[2]
 
+
+        # Calculate top and bottom heights for centering bounding box
+        top_height = front_bbox[1]
+        bottom_height = frame_height - front_bbox[3]
+
+
         # Print left and right widths
         print("Left Width:", left_width)
         print("Right Width:", right_width)
+
+
+        # Print top and bottom heights
+        print("Top Height:", top_height)
+        print("Bottom Height:", bottom_height)
 
         # Calculate the difference between left and right widths
         width_difference = abs(left_width - right_width)
@@ -146,21 +157,55 @@ def main():
         # Define a threshold for considering the pallet centered
         threshold = 10  # Adjust as needed
 
+
+        # Calculate the difference between top and bottom heights
+        height_difference = abs(top_height - bottom_height)
+
+        # Define a threshold for considering the pallet centered vertically
+        height_threshold = 10  # Adjust as needed
+
         # Determine if the pallet is centered
         if width_difference <= threshold:
-            decision = "Centered"
+            horizontal_decision = "Centered"
         elif left_width < right_width:
-            decision = "Go Left"
+            horizontal_decision = "Go Left"
         else:
-            decision = "Go Right"
+            horizontal_decision = "Go Right"
 
-        # Publish the decision on the "decision" topic
-        decision_pub.publish(decision)
+        # Determine if the pallet is centered vertically
+        if height_difference <= height_threshold:
+            vertical_decision = "Centered"
+        elif top_height < bottom_height:
+            vertical_decision = "Go Down"
+        else:
+            vertical_decision = "Go Up"
+
+
+
+        # Integrate both width and height decisions
+        if horizontal_decision == "Centered" and vertical_decision == "Centered":
+            final_decision = "Centered"
+        else:
+            final_decision = f"{horizontal_decision}, {vertical_decision}"
+
+        # Publish the final decision on the "decision" topic
+        decision_pub.publish(final_decision)
+
 
         # Print left and right widths and decision
         print("Left Width:", left_width)
         print("Right Width:", right_width)
-        print("Decision:", decision)
+        print("Horizontal Decision:", horizontal_decision)
+
+
+        # Print top and bottom heights and vertical decision
+        print("Top Height:", top_height)
+        print("Bottom Height:", bottom_height)
+        print("Vertical Decision:", vertical_decision)
+
+
+        # Print final decision
+        print("Final Decision:", final_decision)
         
 
         rate.sleep()
