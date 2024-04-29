@@ -138,7 +138,7 @@ def main():
 
 
         # Calculate top and bottom heights for centering bounding box
-        top_height = front_bbox[1]
+        top_height = pallet_bbox[1]
         bottom_height = frame_height - front_bbox[3]
 
 
@@ -176,9 +176,9 @@ def main():
         if height_difference <= height_threshold:
             vertical_decision = "Centered"
         elif top_height < bottom_height:
-            vertical_decision = "Go Down"
-        else:
             vertical_decision = "Go Up"
+        else:
+            vertical_decision = "Go Down"
 
 
 
