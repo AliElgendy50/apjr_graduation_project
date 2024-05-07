@@ -41,11 +41,7 @@ def main():
         if not ret:
             print("Error: Unable to read frame.")
             break
-        
-        
-        # Rotate the frame by 90 degrees counterclockwise
-        #rotated_frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)        
-        
+          
         
         # Print the maximum height and width of the rotated frame
         print("Maximum Height of Rotated Frame:", frame.shape[0])
@@ -54,7 +50,7 @@ def main():
         # Run YOLOv8 tracking on the frame, persisting tracks between frames
         results = model.track(frame , persist=True, conf=0.5)
         
-        #results = model.track(cropped_frame , persist=True, conf=0.5, tracker="bytetrack.yaml")  
+        #results = model.track(frame , persist=True, conf=0.5, tracker="bytetrack.yaml")  
         
         # Define the class names        
         class_names = {0: 'fork', 1: 'front', 2: 'pallet'}
@@ -97,11 +93,10 @@ def main():
         # Rotate the frame by 90 degrees counterclockwise
         annotated_frame_rgb = cv2.rotate(annotated_frame_rgb, cv2.ROTATE_90_CLOCKWISE)  
         
-        #frame_width=480
-        #frame_height=848
+ 
+        frame_width = annotated_frame_rgb.shape[1]
+        frame_height = annotated_frame_rgb.shape[0]
         
-        
-
         # # Convert the frame to ROS Image message
         image_msg = bridge.cv2_to_imgmsg(annotated_frame_rgb, encoding="rgb8")
 
@@ -111,82 +106,80 @@ def main():
        
         # Calculate left and right widths for centering bounding box
         
-        # if front_bbox is not None and pallet_bbox is not None:
-            
-        #     left_width = front_bbox[0]
-        #     right_width = frame_width - front_bbox[2]
+        if front_bbox is not None and pallet_bbox is not None: 
+            left_width = front_bbox[0]
+            right_width = frame_width - front_bbox[2]
                
-        #     # Print left and right widths
-        #     print("Left Width:", left_width)
-        #     print("Right Width:", right_width)
+        # Print left and right widths
+            print("Left Width:", left_width)
+            print("Right Width:", right_width)
                 
-        #     # Calculate top and bottom heights for centering bounding box
-        #     top_height = pallet_bbox[1]
-        #     bottom_height = frame_height - front_bbox[3]
+        # Calculate top and bottom heights for centering bounding box
+            top_height = pallet_bbox[1]
+            bottom_height = frame_height - front_bbox[3]
 
-        #     # Print top and bottom heights
-        #     print("Top Height:", top_height)
-        #     print("Bottom Height:", bottom_height)
+        # Print top and bottom heights
+            print("Top Height:", top_height)
+            print("Bottom Height:", bottom_height)
             
 
-        #     # Calculate the difference between left and right widths
-        #     width_difference = abs(left_width - right_width) 
+        # Calculate the difference between left and right widths
+            width_difference = abs(left_width - right_width) 
 
-        #     # Define a threshold for considering the pallet centered
-        #     threshold = 15  # Adjust as needed
+        # Define a threshold for considering the pallet centered
+            threshold = 15  # Adjust as needed
 
-        #     # Calculate the difference between top and bottom heights
-        #     height_difference = abs(top_height - bottom_height)
+        # Calculate the difference between top and bottom heights
+            height_difference = abs(top_height - bottom_height)
 
-        #     #Define a threshold for considering the pallet centered vertically
-        #     height_threshold = 15  # Adjust as needed
+        # Define a threshold for considering the pallet centered vertically
+            height_threshold = 15  # Adjust as needed
 
-        #     # Determine if the pallet is centered
-        #     if width_difference <= threshold:
-        #         horizontal_decision = "Centered"
-        #     elif left_width < right_width:
-        #         horizontal_decision = "Go Left"
-        #     else:
-        #         horizontal_decision = "Go Right"
+        # Determine if the pallet is centered
+            if width_difference <= threshold:
+                horizontal_decision = "Centered"
+            elif left_width < right_width:
+                horizontal_decision = "Go Left"
+            else:
+                horizontal_decision = "Go Right"
 
-        #     # Determine if the pallet is centered vertically
-        #     if height_difference <= height_threshold:
-        #         vertical_decision = "Centered"
-        #     elif top_height < bottom_height:
-        #         vertical_decision = "Go Up"
-        #     else:
-        #         vertical_decision = "Go Down"
-
-
-        #     # Integrate both width and height decisions
-        #     if horizontal_decision == "Centered" and vertical_decision == "Centered":
-        #         final_decision = "Centered"
-        #     else:
-        #         final_decision = f"{horizontal_decision}, {vertical_decision}"
-
-        #     # Publish the final decision on the "decision" topic
-        #     decision_pub.publish(final_decision)
+        # Determine if the pallet is centered vertically
+            if height_difference <= height_threshold:
+                vertical_decision = "Centered"
+            elif top_height < bottom_height:
+                vertical_decision = "Go Up"
+            else:
+                vertical_decision = "Go Down"
 
 
-        #     # Print left and right widths and decision
-        #     print("Left Width:", left_width)
-        #     print("Right Width:", right_width)
-        #     print("Horizontal Decision:", horizontal_decision)
+        # Integrate both width and height decisions
+            if horizontal_decision == "Centered" and vertical_decision == "Centered":
+                final_decision = "Centered"
+            else:
+                final_decision = f"{horizontal_decision}, {vertical_decision}"
+
+        # Publish the final decision on the "decision" topic
+            decision_pub.publish(final_decision)
 
 
-        #     #Print top and bottom heights and vertical decision
-        #     print("Top Height:", top_height)
-        #     print("Bottom Height:", bottom_height)
-        #     print("Vertical Decision:", vertical_decision)
+        # Print left and right widths and decision
+            print("Left Width:", left_width)
+            print("Right Width:", right_width)
+            print("Horizontal Decision:", horizontal_decision)
 
 
-        #     # Print final decision
-        #     print("Final Decision:", final_decision) 
+        # Print top and bottom heights and vertical decision
+            print("Top Height:", top_height)
+            print("Bottom Height:", bottom_height)
+            print("Vertical Decision:", vertical_decision)
+
+
+        # Print final decision
+            print("Final Decision:", final_decision) 
         
-        # # View results
+        # View results
         # for r in results:
         #     print(r.boxes)  # print the Boxes object containing the detection bounding boxes
-
         rate.sleep()
 
     # Release the video capture
