@@ -1,0 +1,34 @@
+import cv2
+from ultralytics import YOLO
+import matplotlib.pyplot as plt
+
+# Load the YOLOv8 model
+model = YOLO('best.pt')
+
+# Open the video file
+video_path = "pallet2.mp4"
+cap = cv2.VideoCapture(video_path)
+
+while cap.isOpened():
+    # Read a frame from the video
+    success, frame = cap.read()
+
+    if success:
+        # Rotate the frame by 90 degrees clockwise
+        rows, cols, _ = frame.shape
+        M = cv2.getRotationMatrix2D((cols / 2, rows / 2), -90, 1)
+        rotated_frame = cv2.warpAffine(frame, M, (cols, rows))
+
+        # Run YOLOv8 tracking on the frame, persisting tracks between frames
+        results = model.track(rotated_frame, persist=True, conf=0.5)
+
+        # Visualize the results on the rotated frame
+        annotated_frame = results[0].plot()
+        
+        # Convert the annotated frame from BGR to RGB
+        annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+
+        # Display the annotated frame using Matplotlib
+        plt.imshow(annotated_frame_rgb)
+        plt.axis('off')  # Turn off axis
+        plt.show()

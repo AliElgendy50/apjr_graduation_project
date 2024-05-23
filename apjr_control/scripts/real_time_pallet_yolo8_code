@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+import rospy
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+import cv2
+import numpy as np
+from std_msgs.msg import String
+from ultralytics import YOLO
+
+def main():
+    rospy.init_node('pallet_detection_publisher')
+
+    # Initialize CvBridge
+    bridge = CvBridge()
+
+    # Publisher for annotated image
+    image_pub = rospy.Publisher('/pallet_detection/image', Image, queue_size=10)
+
+    # Publisher for decision
+    decision_pub = rospy.Publisher('/final_decision', String, queue_size=10)  # Adjust topic and message type as needed
+
+    # Initialize the decision message
+    decision_msg = String()
+
+    # Load the YOLOv8 model
+    model = YOLO('/home/ali/Trained Model/pallet_yolov8/best.pt')
+    
+    # Open a video file or stream
+    #video_capture = cv2.VideoCapture("/home/ali/Trained Model/pallet_yolov8/pallet3.mp4")  # Corrected file path
+    video_capture = cv2.VideoCapture("/dev/video0")
+    # Check if the video capture is open
+    if not video_capture.isOpened():
+        print("Error: Unable to open video source.")
+        return
+    
+     # Loop for processing frames
+    rate = rospy.Rate(30)  # Adjust as needed
+    while not rospy.is_shutdown():
+        # Read a frame from the video
+        ret, frame = video_capture.read()
+        if not ret:
+            print("Error: Unable to read frame.")
+            break
+          
+        
+        # Print the maximum height and width of the rotated frame
+        print("Maximum Height of Rotated Frame:", frame.shape[0])
+        print("Maximum Width of Rotated Frame:", frame.shape[1])
+    
+        # Run YOLOv8 tracking on the frame, persisting tracks between frames
+        results = model.track(frame , persist=True, conf=0.6)
+        
+        #results = model.track(frame , persist=True, conf=0.5, tracker="bytetrack.yaml")  
+        
+        # Define the class names        
+        class_names = {0: 'fork', 1: 'front', 2: 'pallet'}
+
+        # Variables to store bounding box coordinates for 'pallet' and 'front'
+        pallet_bbox = None
+        front_bbox = None
+
+        # Iterate through each detection
+        for cls, conf, xyxy in zip(results[0].boxes.cls, results[0].boxes.conf, results[0].boxes.xyxy):
+            # Extract xmin, ymin, xmax, ymax from xyxy tensor
+            xmin, ymin, xmax, ymax = [round(coord, 2) for coord in xyxy.tolist()]  # Round coordinates to 2 decimal places
+            # Retrieve the corresponding class name
+            class_id = int(cls.item())
+            class_name = class_names.get(class_id, f'Unknown({class_id})')
+            # Reduce decimal places for confidence score
+            confidence = round(conf.item(), 2)
+            # Print the results in an organized manner
+            print(f"Class: {class_name.ljust(7)} | Confidence: {confidence} | Bounding Box: [{xmin:<7}, {ymin:<7}, {xmax:<7}, {ymax:<7}]")
+
+            # Check if the detected class is 'pallet'
+            if class_name == 'pallet':
+                pallet_bbox = (xmin, ymin, xmax, ymax)
+            # Check if the detected class is 'front'
+            elif class_name == 'front':
+                front_bbox = (xmin, ymin, xmax, ymax)
+
+        # Now you can use pallet_bbox and front_bbox outside the loop
+        print("Pallet Bounding Box:", pallet_bbox)
+        print("Front Bounding Box:", front_bbox)
+
+            
+        # Visualize the results on the rotated frame
+        annotated_frame = results[0].plot()
+        
+        # Convert the annotated frame from BGR to RGB
+        
+        annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+        
+        # Rotate the frame by 90 degrees counterclockwise
+        annotated_frame_rgb = cv2.rotate(annotated_frame_rgb, cv2.ROTATE_90_CLOCKWISE)  
+        
+ 
+        frame_width = annotated_frame_rgb.shape[0]
+        
+        frame_height = annotated_frame_rgb.shape[1]
+        
+        # Convert the frame to ROS Image message
+        image_msg = bridge.cv2_to_imgmsg(annotated_frame_rgb, encoding="rgb8")
+
+        # Publish the annotated frame
+        image_pub.publish(image_msg)
+        
+        # Calculate left and right widths for centering bounding box
+        
+        #if front_bbox is not None and pallet_bbox is not None: 
+        if front_bbox is not None: 
+            left_width = front_bbox[0]
+            right_width = frame_width - front_bbox[2]
+               
+            # Print left and right widths
+            print("Left Width:", left_width)
+            print("Right Width:", right_width)
+                
+            # Calculate top and bottom heights for centering bounding box
+            #top_height = pallet_bbox[1]
+            top_height = front_bbox[1]
+            bottom_height = frame_height - front_bbox[3]
+
+            # Print top and bottom heights
+            print("Top Height:", top_height)
+            print("Bottom Height:", bottom_height)
+            
+
+            # Calculate the difference between left and right widths
+            width_difference = abs(left_width - right_width) 
+            print(width_difference)
+
+            # Define a threshold for considering the pallet centered
+            width_threshold = 25  # Adjust as needed
+
+            # Calculate the difference between top and bottom heights
+            height_difference = abs(top_height - bottom_height)
+            print(height_difference)
+
+            # Define a threshold for considering the pallet centered vertically
+            height_threshold = 40  # Adjust as needed
+
+            # Determine if the pallet is centered
+            if width_difference <= width_threshold:
+                horizontal_decision = "Centered"
+            elif left_width < right_width:
+                horizontal_decision = "Go Left"
+            else:
+                horizontal_decision = "Go Right"
+
+            # Determine if the pallet is centered vertically
+            if height_difference <= height_threshold:
+                vertical_decision = "Centered"
+            elif top_height < bottom_height:
+                vertical_decision = "Go Up"
+            else:
+                vertical_decision = "Go Down"
+
+
+            # Integrate both width and height decisions
+            if horizontal_decision == "Centered" and vertical_decision == "Centered":
+                final_decision = "Centered"
+            else:
+                final_decision = f"{horizontal_decision}, {vertical_decision}"
+
+            # Publish the final decision on the "decision" topic
+            decision_pub.publish(final_decision)
+
+
+            # Print left and right widths and decision
+            print("Left Width:", left_width)
+            print("Right Width:", right_width)
+            print("Horizontal Decision:", horizontal_decision)
+
+
+            # Print top and bottom heights and vertical decision
+            print("Top Height:", top_height)
+            print("Bottom Height:", bottom_height)
+            print("Vertical Decision:", vertical_decision)
+
+
+            # Print final decision
+            print("Final Decision:", final_decision) 
+        
+            # View results
+            # for r in results:
+            #     print(r.boxes)  # print the Boxes object containing the detection bounding boxes
+        rate.sleep()
+
+    # Release the video capture
+    video_capture.release()
+
+if __name__ == '__main__':
+    try:
+        main()
+    except rospy.ROSInterruptException:
+        pass

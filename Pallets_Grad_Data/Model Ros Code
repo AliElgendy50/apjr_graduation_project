@@ -1,0 +1,59 @@
+import rospy
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+from roboflow import Roboflow
+import supervision as sv
+import cv2
+
+# Initialize ROS node
+rospy.init_node('roboflow_node')
+
+# Initialize CvBridge
+bridge = CvBridge()
+
+# Function to process the image
+def process_image(frame):
+    # Predict on the frame
+    result = model.predict(frame, confidence=40, overlap=30).json()
+    detections = sv.Detections.from_inference(result)
+    labels = [item["class"] for item in result["predictions"]]
+
+    # Annotate the frame
+    label_annotator = sv.LabelAnnotator()
+    bounding_box_annotator = sv.BoundingBoxAnnotator()
+
+    annotated_frame = bounding_box_annotator.annotate(scene=frame, detections=detections)
+    annotated_frame = label_annotator.annotate(scene=annotated_frame, detections=detections, labels=labels)
+
+    # Convert the annotated frame from BGR to RGB format
+    annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+
+    # Display the annotated frame using supervision's plot_image function
+    sv.plot_image(image=annotated_frame_rgb, size=(16, 16))
+
+    # Decision-making based on detected objects
+    for detection in result["predictions"]:
+        if detection["class"] == "pallet":
+            # If a pallet is detected, take some action
+            print("Pallet detected! Take action...")
+            # Your decision-making logic here, such as controlling a robot or triggering an event
+
+# Callback function for image subscriber
+def image_callback(msg):
+    # Convert ROS Image message to OpenCV image
+    frame = bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+
+    # Process the image
+    process_image(frame)
+
+# Initialize Roboflow
+rf = Roboflow(api_key="LlIKXYgtTmJZ2CUwv4Hl")
+project = rf.workspace().project("pallet-5esjz")
+model = project.version(1).model
+
+# Subscribe to the camera topic
+rospy.Subscriber("/camera/image", Image, image_callback)
+
+# Spin ROS
+rospy.spin()
+
