@@ -416,7 +416,9 @@
        
     </joint>
     <!-- ################################### base_scan Link #####################################-->
-    <link name="base_scan">
+    <!-- was base_scan -->
+    
+    <link name="laser">           
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
@@ -443,7 +445,7 @@
         <axis xyz="0 1 0" />
         <origin xyz="0 0 ${chassisHeight/2 + 0.05}" rpy="0 0 0"/>
         <parent link="chassis"/>
-        <child link="base_scan"/>
+        <child link="laser"/>
     </joint>  
 
 

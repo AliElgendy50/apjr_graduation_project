@@ -1,0 +1,32 @@
+<launch>
+				<!--  ************** Odometry ***************  -->
+	<arg name="gui" default="True" />
+	<param name="use_gui" value="$(arg gui)"/>
+	<param name="robot_description" command="$(find xacro)/xacro '$(find apjr_bringup)/robot_description/urdf/apjr.xacro'" />
+	
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+	
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+	
+	<node pkg="rosserial_python" type="serial_node.py" name="rosserial" output="screen">
+    	<param name="port" value="/dev/ttyACM0" />
+    	<param name="baud" value="57600" />
+  	</node>
+		
+	<node name="apjr_controller" pkg="apjr_base" type="apjr_controller">
+		<param name="publish_tf" value="true" />
+    		<param name="publish_rate" value="10.0" />
+    		<param name="linear_scale_positive" value="1.025" />
+    		<param name="linear_scale_negative" value="1.025" />
+    		<param name="angular_scale_positive" value="1.078" />
+    		<param name="angular_scale_negative" value="1.078" />
+		<param name="angular_scale_accel" value="0.0" />
+	</node>	
+	
+				<!--  ************** Sensors ***************  -->
+	<!-- <include file="$(find freenect_launch)/launch/freenect.launch" />
+	<node name="depthimage_to_laserscan" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan">
+		<remap from="image" to="camera/depth/image_raw" />
+	</node> -->
+	
+</launch>

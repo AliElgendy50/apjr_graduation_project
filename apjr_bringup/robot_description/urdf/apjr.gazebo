@@ -149,6 +149,8 @@
       <steeringAngleTolerance>0.002</steeringAngleTolerance> 
     </plugin>
   </gazebo> -->
+
+  <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
     <gazebo>
     <plugin name="apjr_controller" filename="libgazebo_ros_diff_drive.so">
       <commandTopic>cmd_vel</commandTopic>
@@ -158,8 +160,9 @@
       <publishOdomTF>true</publishOdomTF>
       <robotBaseFrame>base_footprint</robotBaseFrame>
       <publishWheelTF>false</publishWheelTF>
-      <publishTf>true</publishTf>
+      <publishTf>1</publishTf>
       <publishWheelJointState>true</publishWheelJointState>
+      <publishWheelTF>true</publishWheelTF>
       <legacyMode>false</legacyMode>
       <updateRate>30</updateRate>
       <leftJoint>drive_wheel_joint</leftJoint>
@@ -179,10 +182,10 @@
 			<robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
 		</plugin>
 	</gazebo>
-
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 	<!-- Hokuyo -->
 
-  <gazebo reference="base_scan">
+  <gazebo reference="laser">
     <sensor type="ray" name="head_hokuyo_sensor">
       <pose>0 0 0 0 0 0</pose>
       <visualize>false</visualize>
@@ -213,7 +216,7 @@
             </ros>
             <alwaysOn>true</alwaysOn>
         <topicName>scan</topicName>
-        <frameName>base_scan</frameName>
+        <frameName>laser</frameName>
       </plugin>
     </sensor>
   </gazebo>

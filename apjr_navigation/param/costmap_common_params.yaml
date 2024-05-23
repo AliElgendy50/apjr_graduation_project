@@ -8,4 +8,4 @@ inflation_radius: 0.25
 cost_scaling_factor: 10 # was 5  
 observation_sources: scan #, point_cloud_sensor
 
-scan: {sensor_frame: base_scan, data_type: LaserScan, topic: scan, marking: true, clearing: true}
+scan: {sensor_frame: laser, data_type: LaserScan, topic: scan, marking: true, clearing: true}
