@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <cmath>
 
-double radius = 0.1;                              //Wheel radius, in m
+double radius = 0.05;                              //Wheel radius, in m
 double wheelbase = 0.475;                          //Wheelbase, in m
 double two_pi = 6.28319;
 double speed_act_left = 0.0;

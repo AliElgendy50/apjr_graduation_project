@@ -2,8 +2,6 @@
 // #include <Adafruit_MotorShield.h>
 // #include <Wire.h>
 #include <PID_v1.h>
-#include <PIDAutotuner.h>
-#include <AutoPID.h>
 #include <ros.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Vector3Stamped.h>
@@ -19,55 +17,71 @@
 #define ENB 9
 // DC Motor signals
 
-#define IN1	7
-#define IN2 8
-#define IN3 9
-#define IN4	10  
+// #define IN1	7
+// #define IN2 8
+// #define IN3 9
+// #define IN4	10  
 
 #define Dir_1 7
 #define Dir_2 8
 /* PID Variables */
-float error_r = 0;
-float error_1_r = 0;
-float error_2_r = 0;
-float u_Prev_r = 0;
+// float error_r = 0;
+// float error_1_r = 0;
+// float error_2_r = 0;
+// float u_Prev_r = 0;
 
-double kp_r = 50;
-double kd_r = 0.07;
-double ki_r = 8;
-float Ts = 0.1;
+// double kp_r = 50;
+// double kd_r = 0.1;
+// double ki_r = 10;
+// float Ts = 0.1;
 
-float error_l = 0;
-float error_1_l = 0;
-float error_2_l = 0;
-float u_Prev_l = 0;
+// float error_l = 0;
+// float error_1_l = 0;
+// float error_2_l = 0;
+// float u_Prev_l = 0;
 
-double kp_l = 53;
-double kd_l = 0.07;
-double ki_l = 10;
+// double kp_l = 53;
+// double kd_l = 0.1;
+// double ki_l = 10;
 
 int dir_l = 0;
 int dir_r = 0;
-// char TuneCounter = 0;
-// PIDAutotuner tuner = PIDAutotuner();
-// PIDAutotuner tuner_r = PIDAutotuner();
-// float pv = 0;
-// float sp =0;
-// long prevTime = 0;
-// long interval = 100;
-// float errorPrev = 0;
-// float errorIntegral = 0;
-// float cv = 0;
-// float cv1 = 0;
-// float error = 0;
-// float error1 = 0;
-// float error2 = 0;
+///////////////////////////////////
+double Pk1 = 1;
+double Ik1 = 0;
+double Dk1 = 0.03;
 
-// float kp = 10;
-// float kd = 0;
-// float ki = 0.005;
-// float Ts = 0.1;
-///////////////////////////////////////////////////////////
+double Setpoint1, Input1, Output1, Output1a;
+PID PID1(&Input1, &Output1, &Setpoint1, Pk1, Ik1, Dk1, DIRECT);
+
+double Pk2 = 1;
+double Ik2 = 0;
+double Dk2 = 0.03;
+
+double Setpoint2, Input2, Output2, Output2a;
+PID PID2(&Input2, &Output2, &Setpoint2, Pk2, Ik2, Dk2, DIRECT);
+
+// float demand1;
+// float demand2;
+
+// float demandx;
+// float demandz;
+
+unsigned long currentMillis;
+unsigned long previousMillis;
+
+volatile int encoder0Pos = 0;
+volatile int encoder1Pos = 0;
+
+float encoder0Diff;
+float encoder1Diff;
+
+float encoder0Error;
+float encoder1Error;
+
+float encoder0Prev;
+float encoder1Prev;
+//////////////////////////////////////
 
 volatile int lastEncoderState_A=0;
 
@@ -90,7 +104,7 @@ const int PIN_ENCOD_B_MOTOR_RIGHT = 6;              //B channel for encoder of r
 unsigned long lastMilli = 0;
 
 //--- Robot-specific constants ---
-const double radius = 0.1;                   //Wheel radius, in m
+const double radius = 0.05;                   //Wheel radius, in m
 const double wheelbase = 0.475;               //Wheelbase, in m
 const double encoder_cpr = 7;               //Encoder ticks or counts per rotation
 const double speed_to_pwm_ratio = 0.00235;    //Ratio to convert speed (in m/s) to PWM value. It was obtained by plotting the wheel speed in relation to the PWM motor command (the value is the slope of the linear function).
@@ -118,8 +132,8 @@ double PWM_rightMotor = 0;                    //PWM command for right motor
 // const double PID_left_param[] = { 0.3, 0.5, 0.001 }; //Respectively Kp, Ki and Kd for left motor PID
 // const double PID_right_param[] = { 0.3, 0.5, 0.001 }; //Respectively Kp, Ki and Kd for right motor PID
 
-volatile float pos_left = 0;       //Left motor encoder position
-volatile float pos_right = 0;      //Right motor encoder position
+//volatile float pos_left = 0;       //Left motor encoder position
+//volatile float pos_right = 0;      //Right motor encoder position
 
 //PID PID_leftMotor(&speed_act_left, &speed_cmd_left, &speed_req_left, PID_left_param[0], PID_left_param[1], PID_left_param[2], DIRECT);          //Setting up the PID for left motor
 //PID PID_rightMotor(&speed_act_right, &speed_cmd_right, &speed_req_right, PID_right_param[0], PID_right_param[1], PID_right_param[2], DIRECT);   //Setting up the PID for right motor
@@ -213,6 +227,14 @@ void setup() {
   // digitalWrite(PIN_ENCOD_A_MOTOR_RIGHT, HIGH);                // turn on pullup resistor
   // digitalWrite(PIN_ENCOD_B_MOTOR_RIGHT, HIGH);
   attachInterrupt(digitalPinToInterrupt(PIN_ENCOD_A_MOTOR_RIGHT), encoderRightMotor, RISING);
+
+  PID1.SetMode(AUTOMATIC);
+  PID1.SetOutputLimits(-255,255);
+  PID1.SetSampleTime(500);
+
+  PID2.SetMode(AUTOMATIC);
+  PID2.SetOutputLimits(-255,255);
+  PID2.SetSampleTime(500);
 }
 
 //_________________________________________________________________________
@@ -242,26 +264,26 @@ void loop() {
 
     
     
-    if (abs(pos_left) < 1){                                                   //Avoid taking in account small disturbances
+    if (abs(encoder0Pos) < 1){                                                   //Avoid taking in account small disturbances
       speed_act_left = 0;
     }
     else {
       // speed_act_left=((pos_left/encoder_cpr)*2*PI)*(1000/LOOPTIME)*radius;           // calculate speed of left wheel
       // speed_act_left=((pos_left/encoder_cpr)*2*PI)*radius; 
-      speed_act_left = (pos_left/7.0) * 2.0 * 3.14 * 0.1;
+      speed_act_left = (encoder0Pos/7.0) * 2.0 * 3.14 * 0.1;
     }
     
-    if (abs(pos_right) < 1){                                                  //Avoid taking in account small disturbances
+    if (abs(encoder1Pos) < 1){                                                  //Avoid taking in account small disturbances
       speed_act_right = 0;
     }
     else {
     // speed_act_right=((pos_right/encoder_cpr)*2*PI)*(1000/LOOPTIME)*radius;          // calculate speed of right wheel
-      speed_act_right = (pos_right/7.0) * 2.0 * 3.14 * 0.1;
+      speed_act_right = (encoder1Pos/7.0) * 2.0 * 3.14 * 0.1;
     }
   
-    pos_left = 0;
-    pos_right = 0;
-    PWM_calculate();
+    // pos_left = 0;
+    // pos_right = 0;
+    // PWM_calculate();
     // error = float(speed_req_right) - float(speed_act_right);
 
     // cv = cv1 + (kp+kd/Ts)*error + (-kp + ki*Ts - 2*kd/Ts) *error1 + (kd/Ts)* error2;
@@ -283,12 +305,41 @@ void loop() {
     //   cv = 30;
     // }
 
+    //in one meter the encoder produces roughly 22 ticks, so in the 500 ms, it would produce 11 ticks to have a speed of 1 m/s
+
+    
     
 
 
 
     //speed_cmd_left = constrain(speed_cmd_left, -max_speed, max_speed);
     speed_req_left = constrain(speed_req_left, -max_speed, max_speed);
+    encoder0Diff = encoder0Pos - encoder0Prev;
+    encoder0Error = (speed_req_left*11) - encoder0Diff;
+    encoder0Prev = encoder0Pos;
+    Setpoint1 = (speed_req_left * 500/(2 * M_PI * 0.0508)) *7/50 ;
+    Input1 = encoder0Diff;
+    PID1.Compute();
+
+    if(Output1>0){
+      PWM_leftMotor = abs(Output1);
+      dir_l = -1;
+    }else if(Output1<0){
+      PWM_leftMotor = abs(Output1);
+      dir_l = 1;
+    }else{
+      dir_l = 0;
+    }
+
+    if(Output2>0){
+      PWM_rightMotor = abs(Output2);
+      dir_r = 1;
+    }else if(Output2<0){
+      PWM_rightMotor = abs(Output2);
+      dir_r = -1;
+    }else{
+      dir_r = 0;
+    }
     // myPIDLeft.run();
   
     // PID_leftMotor.Compute();                                               //Uncomment later !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                             
@@ -322,7 +373,14 @@ void loop() {
     }
     
     //speed_cmd_right = constrain(speed_cmd_right, -max_speed, max_speed);   
-    speed_req_right = constrain(speed_req_right, -max_speed, max_speed);    
+    speed_req_right = constrain(speed_req_right, -max_speed, max_speed);  
+    encoder1Diff = encoder1Pos - encoder1Prev;
+    encoder1Error = (speed_req_right*11) - encoder1Diff;
+    encoder1Prev = encoder1Pos;
+    Setpoint2 = (speed_req_right * 500/(2 * M_PI * 0.0508)) *7/50 ;
+    Input2 = encoder1Diff;
+    PID2.Compute();  
+
     // myPIDRight.run(); 
     // PID_rightMotor.Compute();                                 //Uncomment later !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                                                 
     // compute PWM value for right motor. Check constant definition comments for more information.
@@ -400,9 +458,9 @@ void encoderLeftMotor() {
   // if (digitalRead(PIN_ENCOD_A_MOTOR_LEFT) == digitalRead(PIN_ENCOD_B_MOTOR_LEFT)) pos_left++;
   // else pos_left--;
   if (digitalRead(PIN_ENCOD_B_MOTOR_LEFT)>0){
-    pos_left --;
+    encoder0Pos --;
   }else{
-    pos_left ++;
+    encoder0Pos ++;
   }
 }
 
@@ -410,46 +468,46 @@ void encoderLeftMotor() {
 void encoderRightMotor() {
   // if (digitalRead(PIN_ENCOD_A_MOTOR_RIGHT) == digitalRead(PIN_ENCOD_B_MOTOR_RIGHT)) pos_right--;
   // else pos_right++;
-  if (digitalRead(PIN_ENCOD_B_MOTOR_RIGHT) > 0) pos_right++;
-  else pos_right--;
+  if (digitalRead(PIN_ENCOD_B_MOTOR_RIGHT) > 0) encoder1Pos --;
+  else encoder1Pos ++;
 }
 
-void PWM_calculate(){
+// void PWM_calculate(){
 
-  error_r = speed_req_right - speed_act_right;
-  error_l = speed_req_left - speed_act_left;
-  float u_r= u_Prev_r + (kp_r+kd_r/Ts)*error_r + (-kp_r + ki_r*Ts - 2*kd_r/Ts) *error_1_r + (kd_r/Ts)* error_2_r;
-  u_Prev_r = u_r;
+//   error_r = speed_req_right - speed_act_right;
+//   error_l = speed_req_left - speed_act_left;
+//   float u_r= u_Prev_r + (kp_r+kd_r/Ts)*error_r + (-kp_r + ki_r*Ts - 2*kd_r/Ts) *error_1_r + (kd_r/Ts)* error_2_r;
+//   u_Prev_r = u_r;
 
-  float u_l= u_Prev_l + (kp_l+kd_l/Ts)*error_l + (-kp_l + ki_l*Ts - 2*kd_l/Ts) *error_1_l + (kd_l/Ts)* error_2_l;
-  u_Prev_l = u_l;
+//   float u_l= u_Prev_l + (kp_l+kd_l/Ts)*error_l + (-kp_l + ki_l*Ts - 2*kd_l/Ts) *error_1_l + (kd_l/Ts)* error_2_l;
+//   u_Prev_l = u_l;
 
-  PWM_rightMotor = (int) fabs(u_r);
-  if(PWM_rightMotor>255){
-    PWM_rightMotor = 255;
-  }else if (PWM_rightMotor<20){
-    PWM_rightMotor = 30;
-  }
+//   PWM_rightMotor = (int) fabs(u_r);
+//   if(PWM_rightMotor>255){
+//     PWM_rightMotor = 255;
+//   }else if (PWM_rightMotor<20){
+//     PWM_rightMotor = 30;
+//   }
 
-  PWM_leftMotor = (int) fabs(u_l);
-  if(PWM_leftMotor>255){
-    PWM_leftMotor = 255;
-  }else if (PWM_leftMotor<20){
-    PWM_leftMotor = 30;
-  }
+//   PWM_leftMotor = (int) fabs(u_l);
+//   if(PWM_leftMotor>255){
+//     PWM_leftMotor = 255;
+//   }else if (PWM_leftMotor<20){
+//     PWM_leftMotor = 30;
+//   }
 
-  dir_r = 1;
-  if (u_r<0){
-    dir_r = -1;
-  }
+//   dir_r = 1;
+//   if (u_r<0){
+//     dir_r = -1;
+//   }
 
-  dir_l = 1;
-  if (u_l<0){
-    dir_l = -1;
-  }
+//   dir_l = 1;
+//   if (u_l<0){
+//     dir_l = -1;
+//   }
 
 
-}
+// }
 
 //////////////////////////////////////////////////////////////////////////////////
 
